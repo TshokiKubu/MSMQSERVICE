@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace MsmqTransactionProcessor.Repositories
 {
     public interface ITransactionRepository
     {
-        Task AddTransactionAsync(TransactionMessage transactionMessage);
+        Task AddTransactionAsync(Transaction transaction);
     }
 }

@@ -11,18 +11,31 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 
-
 namespace MsmqTransactionProcessor
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+           
             var host = CreateHostBuilder(args).Build();
 
-            // Run your MSMQ service logic
-            var processor = host.Services.GetRequiredService<MsmqListener>();
-            processor.StartListening();
+            bool sendTestMessages = false;
+
+            if (sendTestMessages)
+            {
+               var repository = host.Services.GetRequiredService<ITransactionRepository>();             
+            }
+            else
+            {
+                var processor = host.Services.GetRequiredService<MsmqListener>();
+
+                // Note: this is no longer async, just start listener
+                processor.StartListening();
+
+                // Keep app running indefinitely so listener stays alive
+                await Task.Delay(-1);
+            }
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -33,12 +46,13 @@ namespace MsmqTransactionProcessor
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
+                    var connectionString = context.Configuration.GetConnectionString("SQLServerConnection");
 
-                    services.AddDbContext<TransactionDbContext>(options =>
-                        options.UseSqlServer(connectionString));
-
-                    services.AddTransient<ITransactionRepository, TransactionRepository>();
+                services.AddDbContext<TransactionDbContext>(options =>
+                    options.UseSqlServer(connectionString)
+                    .EnableSensitiveDataLogging());
+       
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
                     services.AddTransient<MsmqListener>();
                 });
     }

@@ -17,12 +17,13 @@ namespace MsmqTransactionProcessor.Repositories
             _context = context;
         }
 
-        public async Task AddTransactionAsync(TransactionMessage transactionMessage)
+        public async Task AddTransactionAsync(Transaction transaction)
         {
             try
             {
-                _context.Transactions.Add(transactionMessage);
-                await _context.SaveChangesAsync();
+                _context.Transactions.Add(transaction);
+                var affected = await _context.SaveChangesAsync();
+                Helpers.Logger.Log($"[DB INFO] SaveChanges returned: {affected}");
             }
             catch (Exception ex)
             {
